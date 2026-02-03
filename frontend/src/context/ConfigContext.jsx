@@ -1,5 +1,4 @@
 import { createContext, useContext, useMemo } from "react";
-import { PublicKey } from "@solana/web3.js";
 import { useQuery } from "@tanstack/react-query";
 import * as api from "../services/api";
 
@@ -28,8 +27,8 @@ export function ConfigProvider({ children }) {
     return {
       network: data.network,
       endpoint: data.endpoint,
-      programId: new PublicKey(data.programId),
-      treasury: new PublicKey(data.treasury),
+      programId: data.programId, // Return as string
+      treasury: data.treasury,   // Return as string
       idl: data.idl,
       isLoading: false,
       error: null,

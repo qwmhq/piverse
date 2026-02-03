@@ -2,10 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { socket } from '../services/socket';
 import * as api from '../services/api';
-import { useConnection } from '@solana/wallet-adapter-react';
-import { useSolanaConfig } from '../context/ConfigContext';
-import { AnchorProvider, Program } from '@coral-xyz/anchor';
-import { PublicKey } from '@solana/web3.js';
 
 export function useLiveFeed() {
   const queryClient = useQueryClient();
@@ -73,31 +69,11 @@ export function useLiveFeed() {
 }
 
 export function useGameStats() {
-    const { connection } = useConnection();
-    const config = useSolanaConfig();
-    // If config failed, return error immediately
-    if (config.error) {
-        return { 
-            data: null, 
-            watcherCount: 0, 
-            status: 'error',
-            isPending: false, 
-            isLoading: false, 
-            isError: true, 
-            error: new Error(config.error) 
-        };
-    }
-
-    const { programId, idl, isLoading: configLoading } = config;
     const [watcherCount, setWatcherCount] = useState(0);
 
     const query = useQuery({
-        queryKey: ['gameStats', programId?.toString()],
+        queryKey: ['gameStats'],
         queryFn: async () => {
-             if (!programId || !idl) {
-                 throw new Error("Program not loaded");
-             }
-             
              // Get the current game ID from the backend
              const backendStats = await api.fetchStats();
              
@@ -115,75 +91,23 @@ export function useGameStats() {
                  };
              }
 
-             // [BYPASS] If running in temporary off-chain mode, return backend stats directly
-             if (backendStats.gameId === 'TEMP_MODE') {
-                 return {
-                     status: backendStats.status,
-                     name: backendStats.name,
-                     jackpot: backendStats.jackpot,
-                     totalAttempts: backendStats.totalAttempts,
-                     attemptPrice: 0.00, 
-                     pda: "OFF_CHAIN_PDA",
-                     gameId: 'TEMP_MODE',
-                     devWallet: "OFF_CHAIN",
-                     endTime: Date.now() + 86400000, // Dummy end time
-                     marketStatus: 'active',
-                     winner: null, // Logic handled via chat response
-                     initialized: true
-                 };
-             }
-
-             // Derive PDA locally from gameId
-             const gameIdBN = BigInt(backendStats.gameId);
-             const gameIdBuffer = Buffer.alloc(8);
-             gameIdBuffer.writeBigUInt64LE(gameIdBN);
-             
-             const [gameStatePda] = PublicKey.findProgramAddressSync(
-                 [Buffer.from("game_state"), gameIdBuffer],
-                 programId
-             );
-
-             const provider = new AnchorProvider(connection, { publicKey: PublicKey.default }, { preflightCommitment: "processed" });
-             const program = new Program(idl, provider);
-
-             try {
-                 const account = await program.account.gameState.fetch(gameStatePda);
-                 
-                 // Parse market status enum
-                 const marketStatusKey = Object.keys(account.marketStatus)[0];
-                 
-                 return {
-                     status: account.isActive ? "active" : "inactive",
-                     name: backendStats?.name,
-                     jackpot: account.jackpot.toNumber() / 1000000000,
-                     totalAttempts: account.totalAttempts.toNumber(),
-                     attemptPrice: account.attemptPrice.toNumber() / 1000000000,
-                     pda: gameStatePda.toString(),
-                     gameId: backendStats.gameId,
-                     devWallet: account.devWallet.toString(),
-                     endTime: account.endTime.toNumber() * 1000,
-                     marketStatus: marketStatusKey, // 'active', 'breached', or 'failed'
-                     winner: account.winner?.toString() || null,
-                     initialized: true
-                 };
-             } catch (e) {
-                 console.warn('[useGameStats] On-chain fetch failed:', e.message);
-                 return {
-                     status: "error",
-                     name: backendStats?.name,
-                     jackpot: 0,
-                     totalAttempts: 0,
-                     attemptPrice: 0.01,
-                     pda: gameStatePda.toString(),
-                     gameId: backendStats.gameId,
-                     devWallet: null,
-                     endTime: null,
-                     initialized: false
-                 };
-             }
+             // Return backend stats directly
+             return {
+                 status: backendStats.status || "active",
+                 name: backendStats.name || "CLAW VERSE",
+                 jackpot: backendStats.jackpot || 0,
+                 totalAttempts: backendStats.totalAttempts || 0,
+                 attemptPrice: 0.00, 
+                 pda: "OFF_CHAIN_PDA",
+                 gameId: backendStats.gameId,
+                 devWallet: "OFF_CHAIN",
+                 endTime: Date.now() + 86400000, 
+                 marketStatus: 'active',
+                 winner: null, 
+                 initialized: true
+             };
         },
         refetchInterval: 10000,
-        enabled: !configLoading && !!programId && !!idl,
         retry: 2,
     });
 
@@ -247,42 +171,13 @@ export function useSendChatMessage() {
 }
 
 export function useActivePrediction(walletAddress, gameStats) {
-  const { connection } = useConnection();
-  const { idl } = useSolanaConfig();
-  
+  // Placeholder for active prediction since on-chain logic is removed
   return useQuery({
       queryKey: ['activePrediction', walletAddress, gameStats?.pda],
       queryFn: async () => {
-          if (!walletAddress || !gameStats?.pda || !idl) return null;
-          if (gameStats.pda === 'OFF_CHAIN_PDA') return null; // [BYPASS] Skip for off-chain mode
-          
-          const provider = new AnchorProvider(connection, { publicKey: new PublicKey(walletAddress) }, { preflightCommitment: "processed" });
-          const program = new Program(idl, provider);
-          const programPubkey = new PublicKey(idl.address);
-
-          const gameStatePubkey = new PublicKey(gameStats.pda);
-          const [predictionPda] = PublicKey.findProgramAddressSync(
-              [
-                Buffer.from("prediction"), 
-                gameStatePubkey.toBuffer(), 
-                new PublicKey(walletAddress).toBuffer()
-              ],
-              programPubkey
-          );
-
-          try {
-              const account = await program.account.prediction.fetch(predictionPda);
-              return {
-                  amount: account.amount.toString(),
-                  side: Object.keys(account.side)[0], // { fail: {} } -> 'fail'
-                  claimed: account.claimed,
-                  pda: predictionPda.toString()
-              };
-          } catch (e) {
-              // Account likely doesn't exist yet (User hasn't bet)
-              return null;
-          }
+          // Return null for now or mock data if needed
+          return null;
       },
-      enabled: !!walletAddress && !!gameStats?.pda && !!idl
+      enabled: !!walletAddress && !!gameStats?.pda
   });
 }

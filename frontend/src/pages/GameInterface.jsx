@@ -1,31 +1,27 @@
 import React, { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
-import { useWallet, useConnection } from "@solana/wallet-adapter-react";
-import { PublicKey } from "@solana/web3.js";
-import { AnchorProvider, Program } from "@coral-xyz/anchor";
+import { useAccount } from "wagmi";
 import Header from "../components/Header";
 import TransactionLoader from "../components/TransactionLoader";
 import Countdown from "../components/Countdown";
 import WinnerCelebration from "../components/WinnerCelebration";
 import { useGameStats, useSendChatMessage } from "../hooks/useGameData";
-import { useSolanaConfig } from "../context/ConfigContext";
+// import { useSolanaConfig } from "../context/ConfigContext";
 
-async function hashMessage(message) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(message);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("")
-    .slice(0, 32);
-}
+// async function hashMessage(message) {
+//   const encoder = new TextEncoder();
+//   const data = encoder.encode(message);
+//   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+//   const hashArray = Array.from(new Uint8Array(hashBuffer));
+//   return hashArray
+//     .map((b) => b.toString(16).padStart(2, "0"))
+//     .join("")
+//     .slice(0, 32);
+// }
 
 export default function GameInterface() {
-  const wallet = useWallet();
-  const { publicKey } = wallet;
-  const { connection } = useConnection();
-  const { idl } = useSolanaConfig();
+  const { address, isConnected } = useAccount();
+  // const { idl } = useSolanaConfig();
 
   const [messages, setMessages] = useState([
     {
@@ -70,7 +66,7 @@ export default function GameInterface() {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
-    if (!publicKey) {
+    if (!isConnected) {
       alert("Connect Wallet first.");
       return;
     }
@@ -84,32 +80,8 @@ export default function GameInterface() {
     let signature = null;
 
     try {
-      /* [BYPASS] SMART CONTRACT INTERACTION DISABLED
-      const provider = new AnchorProvider(connection, wallet, {
-        preflightCommitment: "processed",
-      });
-      const program = new Program(idl, provider);
-
-      const gameStatePubkey = new PublicKey(gameStats.pda);
-
-      const [gameVaultPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("game_vault"), gameStatePubkey.toBuffer()],
-        new PublicKey(idl.address)
-      );
-
-      const messageHash = await hashMessage(messageContent);
-
-      const tx = await program.methods
-        .submitAttempt(messageHash)
-        .accounts({
-          gameState: gameStatePubkey,
-          user: publicKey,
-          gameVault: gameVaultPda,
-          devWallet: new PublicKey(gameStats.devWallet),
-        })
-        .rpc();
-
-      signature = tx;
+      /* [BYPASS] EVM SMART CONTRACT INTERACTION PENDING
+         Logic replaced with dummy signatures for backend flow.
       */
 
       // Generate dummy signature for backend tracking in off-chain mode
@@ -130,7 +102,7 @@ export default function GameInterface() {
 
       try {
         const response = await sendChatMessageMutation.mutateAsync({
-          walletAddress: publicKey.toString(),
+          walletAddress: address.toString(),
           message: messageContent,
           txSignature: signature, // Sending dummy signature
         });
@@ -218,7 +190,7 @@ export default function GameInterface() {
 
     try {
       const response = await sendChatMessageMutation.mutateAsync({
-        walletAddress: publicKey.toString(),
+        walletAddress: address.toString(),
         message: msg.content,
         txSignature: msg.txSignature,
       });
@@ -296,13 +268,13 @@ export default function GameInterface() {
   }
 
   const copyAddress = () => {
-    if (publicKey) {
-      navigator.clipboard.writeText(publicKey.toString());
+    if (address) {
+      navigator.clipboard.writeText(address.toString());
     }
   };
 
-  const truncatedAddress = publicKey
-    ? `${publicKey.toString().slice(0, 4)}...${publicKey.toString().slice(-4)}`
+  const truncatedAddress = address
+    ? `${address.toString().slice(0, 4)}...${address.toString().slice(-4)}`
     : "UNKNOWN";
 
   return (
@@ -475,13 +447,13 @@ export default function GameInterface() {
                           <div className="prose prose-invert prose-p:my-1 prose-headings:my-2 max-w-none text-xs sm:text-sm">
                             <ReactMarkdown
                               components={{
-                                p: ({ node, ...props }) => (
+                                p: ({ ...props }) => (
                                   <p
                                     className="mb-1 last:mb-0 inline"
                                     {...props}
                                   />
                                 ),
-                                strong: ({ node, ...props }) => (
+                                strong: ({ ...props }) => (
                                   <span
                                     className="font-bold text-primary-300"
                                     {...props}

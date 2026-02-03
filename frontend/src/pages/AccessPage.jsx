@@ -1,39 +1,52 @@
 import React, { useEffect, useState } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { useAccount, useConnect, useDisconnect } from "wagmi";
 
 import HowToPlayModal from "../components/HowToPlayModal";
 
 export default function AccessPage({ onEnter }) {
-  const { connected, publicKey, disconnect } = useWallet();
-  const { setVisible } = useWalletModal();
+  const { isConnected, address } = useAccount();
+  const { connect, connectors, error, isPending } = useConnect();
+  const { disconnect } = useDisconnect();
   const [typedStatus, setTypedStatus] = useState("");
   const [showHowToPlay, setShowHowToPlay] = useState(false);
+  const [showWalletSelector, setShowWalletSelector] = useState(false);
 
   // Simple typing effect for the status log
   useEffect(() => {
-    const text = connected
+    const text = isConnected
       ? "> IDENTITY VERIFIED. ACCESS GRANTED."
       : "> WAITING FOR WALLET CONNECTION...";
 
     setTypedStatus("");
     let i = 0;
     const interval = setInterval(() => {
-      setTypedStatus((prev) => text.substring(0, i + 1));
+      setTypedStatus(() => text.substring(0, i + 1));
       i++;
       if (i > text.length) clearInterval(interval);
     }, 30);
 
     return () => clearInterval(interval);
-  }, [connected]);
+  }, [isConnected]);
+
+  // Log connection errors
+  useEffect(() => {
+    if (error) {
+      console.error("Wallet connection error:", error);
+    }
+  }, [error]);
 
   const handleConnectClick = () => {
-    if (!connected) {
-      setVisible(true);
+    if (!isConnected) {
+      setShowWalletSelector(true);
     } else {
       // Handle entering the game - for now just log
       console.log("Entering system...");
     }
+  };
+
+  const handleWalletSelect = (connector) => {
+    connect({ connector });
+    setShowWalletSelector(false);
   };
 
   return (
@@ -42,6 +55,59 @@ export default function AccessPage({ onEnter }) {
         isOpen={showHowToPlay}
         onClose={() => setShowHowToPlay(false)}
       />
+
+      {/* Wallet Selector Modal */}
+      {showWalletSelector && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-[#121118] border border-white/10 rounded-xl w-full max-w-sm overflow-hidden shadow-2xl relative">
+            <button 
+              onClick={() => setShowWalletSelector(false)}
+              className="absolute top-3 right-3 text-white/40 hover:text-white"
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+            <div className="p-6">
+              <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                <span className="material-symbols-outlined text-brand-red">account_balance_wallet</span>
+                SELECT UPLINK
+              </h3>
+              
+              {error && (
+                <div className="mb-4 p-3 bg-red-500/10 border border-red-500/50 rounded text-red-200 text-xs font-mono break-words">
+                  ERROR: {error.message}
+                </div>
+              )}
+
+              <div className="flex flex-col gap-3">
+                {connectors.map((connector) => (
+                  <button
+                    key={connector.uid}
+                    disabled={isPending}
+                    onClick={() => handleWalletSelect(connector)}
+                    className="flex items-center justify-between p-4 rounded-lg bg-[#1c1929] hover:bg-[#2b2839] border border-white/5 hover:border-brand-red/50 transition-all group text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="text-gray-200 font-mono font-bold group-hover:text-white transition-colors">
+                      {connector.name}
+                    </span>
+                    {isPending ? (
+                      <span className="material-symbols-outlined animate-spin text-brand-red">
+                        refresh
+                      </span>
+                    ) : (
+                      <span className="material-symbols-outlined text-gray-500 group-hover:text-brand-red transition-colors">
+                        arrow_forward_ios
+                      </span>
+                    )}
+                  </button>
+                ))}
+            </div>
+            </div>
+            <div className="bg-brand-red/5 p-4 border-t border-white/5 text-[10px] text-center text-white/40 font-mono">
+              SECURE CONNECTION REQUIRED FOR ACCESS
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Background texture/grid effect */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-20 bg-[radial-gradient(#D30000_1px,transparent_1px)] [background-size:24px_24px]"></div>
@@ -74,11 +140,11 @@ export default function AccessPage({ onEnter }) {
             <div className="flex items-center gap-2">
               <div
                 className={`h-2 w-2 rounded-full ${
-                  connected ? "bg-green-500" : "bg-brand-red"
+                  isConnected ? "bg-green-500" : "bg-brand-red"
                 } animate-pulse`}
               ></div>
               <span className="text-white/60 text-[10px] sm:text-xs font-bold tracking-widest hidden sm:inline font-mono">
-                NET: {connected ? "SECURE" : "UNVERIFIED"}
+                NET: {isConnected ? "SECURE" : "UNVERIFIED"}
               </span>
             </div>
           </div>
@@ -154,7 +220,7 @@ export default function AccessPage({ onEnter }) {
 
           {/* Login / Connect Action */}
           <div className="flex flex-col gap-4 sm:gap-6 max-w-lg w-full mx-auto">
-            {connected && (
+            {isConnected && (
               <div className="group relative">
                 <div className="absolute inset-0 bg-brand-red/5 rounded-lg -z-10"></div>
                 <div className="flex items-center w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-white/10 bg-brand-dark">
@@ -162,7 +228,7 @@ export default function AccessPage({ onEnter }) {
                     AUTH &gt;
                   </span>
                   <span className="text-white font-mono text-sm sm:text-base tracking-wider truncate">
-                    {publicKey?.toString()}
+                    {address?.toString()}
                   </span>
                 </div>
               </div>
@@ -171,7 +237,7 @@ export default function AccessPage({ onEnter }) {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 sm:pt-4 mt-2">
               <button
                 onClick={() => {
-                  if (connected) {
+                  if (isConnected) {
                     onEnter();
                   } else {
                     handleConnectClick();
@@ -179,9 +245,19 @@ export default function AccessPage({ onEnter }) {
                 }}
                 className="disabled:opacity-50 disabled:pointer-events-none relative w-full sm:flex-1 group overflow-hidden rounded-lg bg-brand-red hover:bg-brand-red/80 transition-all h-14 flex items-center justify-center text-white font-black tracking-widest border border-white/10 shadow-neon-red text-sm sm:text-lg"
               >
-                {connected ? "[ ENTER CLAW VERSE ]" : "[ SYNC NEURAL LINK ]"}
+                {isConnected ? "[ ENTER CLAW VERSE ]" : "[ SYNC NEURAL LINK ]"}
               </button>
             </div>
+            
+            {isConnected && (
+              <button
+                onClick={() => disconnect()}
+                className="text-red-500 hover:text-red-400 text-xs font-bold tracking-widest transition-colors flex items-center justify-center gap-2 mt-2"
+              >
+                <span className="material-symbols-outlined text-sm">logout</span>
+                DISCONNECT UPLINK
+              </button>
+            )}
           </div>
         </div>
 
@@ -194,7 +270,7 @@ export default function AccessPage({ onEnter }) {
             <span>CLAW_SYNC: ACTIVE</span>
           </div>
           <div className="uppercase tracking-wider text-brand-blue animate-pulse">
-            STATUS: {connected ? "READY" : "AWAITING NEURAL LINK"}
+            STATUS: {isConnected ? "READY" : "AWAITING NEURAL LINK"}
           </div>
         </div>
       </div>

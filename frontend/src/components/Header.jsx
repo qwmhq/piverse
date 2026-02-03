@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useDisconnect } from "wagmi";
 
 export default function Header() {
-  const { connected, publicKey, disconnect } = useWallet();
+  const { disconnect } = useDisconnect();
   const [location, setLocation] = useLocation();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const handleDisconnect = async () => {
-    await disconnect();
+    disconnect();
     setLocation("/");
   };
 

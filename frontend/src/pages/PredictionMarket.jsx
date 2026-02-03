@@ -1,7 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useWallet, useConnection } from "@solana/wallet-adapter-react";
-import { SystemProgram, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
-import { BN, AnchorProvider, Program } from "@coral-xyz/anchor";
+import { useAccount } from "wagmi";
 import Header from "../components/Header";
 import TransactionLoader from "../components/TransactionLoader";
 import {
@@ -11,14 +9,12 @@ import {
   usePlacePrediction,
   useActivePrediction,
 } from "../hooks/useGameData";
-import { useSolanaConfig } from "../context/ConfigContext";
+// import { useSolanaConfig } from "../context/ConfigContext";
 import Countdown from "../components/Countdown";
 
 export default function PredictionMarket() {
-  const { connection } = useConnection();
-  const { idl } = useSolanaConfig();
-  const wallet = useWallet();
-  const { publicKey } = wallet;
+  // const { idl } = useSolanaConfig();
+  const { address, isConnected } = useAccount();
 
   const [wager, setWager] = useState("");
   const [selectedSide, setSelectedSide] = useState("fail");
@@ -39,12 +35,14 @@ export default function PredictionMarket() {
   const { data: gameStats, watcherCount, isError, error } = useGameStats();
   const { data: marketStats } = useMarketStats();
   const { data: activePrediction, isLoading: isLoadingPrediction } =
-    useActivePrediction(publicKey?.toString(), gameStats);
+    useActivePrediction(address?.toString(), gameStats);
   const placePredictionMutation = usePlacePrediction();
 
-  const connected = !!publicKey;
-  const truncatedAddress = publicKey
-    ? `${publicKey.toString().slice(0, 4)}...${publicKey.toString().slice(-4)}`
+  const connected = isConnected;
+  const LAMPORTS_PER_SOL = 1000000000; // Legacy constant for compatibility
+
+  const truncatedAddress = address
+    ? `${address.toString().slice(0, 4)}...${address.toString().slice(-4)}`
     : "NOT CONNECTED";
 
   if (isError || (gameStats && gameStats.status === "error")) {
@@ -74,56 +72,21 @@ export default function PredictionMarket() {
   }
 
   const handlePlaceBet = async () => {
-    if (!wallet.publicKey || !wager) return;
+    if (!address || !wager) return;
 
     setIsTransacting(true);
     try {
-      const provider = new AnchorProvider(connection, wallet, {
-        preflightCommitment: "processed",
-      });
-      const program = new Program(idl, provider);
-      const programPubkey = new PublicKey(idl.address);
-
-      // Derive Market Vault PDA
-      // Seeds: [b"market_vault", game_state_key.as_ref()]
-      // Note: We use the PDA from the gameStats as the game_state key
-      const gameStatePubkey = new PublicKey(gameStats.pda);
-
-      const [marketVaultPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("market_vault"), gameStatePubkey.toBuffer()],
-        programPubkey
-      );
-
-      // Derive Prediction PDA (Deterministic: User can only bet ONCE per game session)
-      const [predictionPda] = PublicKey.findProgramAddressSync(
-        [
-          Buffer.from("prediction"),
-          gameStatePubkey.toBuffer(),
-          wallet.publicKey.toBuffer(),
-        ],
-        programPubkey
-      );
-
-      const sideEnum = selectedSide === "fail" ? { fail: {} } : { breach: {} };
-      const amount = new BN(parseFloat(wager) * LAMPORTS_PER_SOL);
-
-      const tx = await program.methods
-        .placePrediction(sideEnum, amount)
-        .accounts({
-          gameState: gameStatePubkey,
-          prediction: predictionPda,
-          user: wallet.publicKey,
-          marketVault: marketVaultPda,
-          systemProgram: SystemProgram.programId,
-        })
-
-        .rpc();
-
-      console.log("Prediction placed:", tx);
+      /* [BYPASS] EVM SMART CONTRACT INTERACTION PENDING
+      */
+      
+      // Simulate transaction
+      const tx = `OFF-CHAIN-PREDICTION-${Date.now()}`;
+      
+      console.log("Prediction placed (simulated):", tx);
 
       // OPTIONAL: Send to backend to track prediction immediately (though webhook/indexer is better)
       await placePredictionMutation.mutateAsync({
-        walletAddress: wallet.publicKey.toString(),
+        walletAddress: address.toString(),
         type: selectedSide,
         amount: wager,
         txSignature: tx,
@@ -138,54 +101,21 @@ export default function PredictionMarket() {
 
   // Claim winnings from prediction market
   const handleClaimWinnings = async () => {
-    if (!wallet.publicKey || !activePrediction) return;
+    if (!address || !activePrediction) return;
 
     setIsTransacting(true);
     try {
-      const provider = new AnchorProvider(connection, wallet, {
-        preflightCommitment: "processed",
-      });
-      const program = new Program(idl, provider);
-      const programPubkey = new PublicKey(idl.address);
+      // Simulate claim
+      const tx = `OFF-CHAIN-CLAIM-${Date.now()}`;
 
-      const gameStatePubkey = new PublicKey(gameStats.pda);
-      const predictionPda = new PublicKey(activePrediction.pda);
-
-      // Derive Market Vault PDA
-      const [marketVaultPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("market_vault"), gameStatePubkey.toBuffer()],
-        programPubkey
-      );
-
-      const tx = await program.methods
-        .claimWinnings()
-        .accounts({
-          gameState: gameStatePubkey,
-          prediction: predictionPda,
-          user: wallet.publicKey,
-          marketVault: marketVaultPda,
-          systemProgram: SystemProgram.programId,
-        })
-        .rpc();
-
-      console.log("Winnings claimed:", tx);
-      alert("🎉 Winnings claimed successfully! Check your wallet.");
+      console.log("Winnings claimed (simulated):", tx);
+      alert("🎉 Winnings claimed successfully! (Simulated)");
 
       // Refresh prediction state .
       window.location.reload();
     } catch (error) {
       console.error("Claim failed:", error);
-      if (error.message?.includes("PredictionLost")) {
-        alert("Sorry, your prediction was incorrect. Better luck next time!");
-      } else if (error.message?.includes("AlreadyClaimed")) {
-        alert("You have already claimed your winnings.");
-      } else if (error.message?.includes("MarketNotResolved")) {
-        alert(
-          "The market has not been resolved yet. Please wait for the game to end."
-        );
-      } else {
-        alert("Claim failed: " + error.message);
-      }
+      alert("Claim failed (Simulation): " + error.message);
     } finally {
       setIsTransacting(false);
     }
@@ -226,7 +156,7 @@ export default function PredictionMarket() {
           >
             <div className="absolute inset-0 pointer-events-none z-20 opacity-30 bg-[linear-gradient(to_bottom,rgba(255,255,255,0),rgba(255,255,255,0)_50%,rgba(0,0,0,0.2)_50%,rgba(0,0,0,0.2))] bg-[length:100%_4px]"></div>
             <div className="max-w-4xl w-full mx-auto flex flex-col-reverse gap-6 pb-24 lg:pb-10">
-              {feedData.map((item, index) => {
+              {feedData.map((item) => {
                 const isUser = item.role === "user";
                 const timestamp = new Date(
                   item.createdAt || Date.now()

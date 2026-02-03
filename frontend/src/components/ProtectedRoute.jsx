@@ -1,18 +1,18 @@
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useAccount } from "wagmi";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
 
 export const ProtectedRoute = ({ children }) => {
-  const { connected } = useWallet();
+  const { isConnected } = useAccount();
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    if (!connected) {
+    if (!isConnected) {
       setLocation("/");
     }
-  }, [connected, setLocation]);
+  }, [isConnected, setLocation]);
 
-  if (!connected) {
+  if (!isConnected) {
     return null;
   }
 
