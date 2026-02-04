@@ -36,7 +36,7 @@ export default function HowToPlayModal({ isOpen, onClose }) {
             <div className="text-center space-y-4 border-b border-white/10 pb-8">
               <h1 className="text-2xl sm:text-4xl font-bold text-white tracking-tight">
                 Welcome to{" "}
-                <span className="text-brand-red glow-text">Claw Verse</span>
+                <span className="text-brand-red glow-text">ClawVerse</span>
               </h1>
               <p className="text-[#a19db9] text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
                 The world's first adversarial AI prediction market. A

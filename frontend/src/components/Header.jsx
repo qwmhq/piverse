@@ -20,12 +20,12 @@ export default function Header() {
         <div className="size-8 sm:size-10 flex items-center justify-center">
           <img
             src="/assets/hero.png"
-            alt="Claw Verse Logo"
+            alt="ClawVerse Logo"
             className="w-full h-full object-contain rounded-full shadow-neon-red"
           />
         </div>
         <h2 className="text-brand-red text-lg sm:text-xl font-black leading-tight tracking-widest uppercase shadow-neon-red">
-          CLAW VERSE
+          CLAWVERSE
         </h2>
       </div>
 

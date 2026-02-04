@@ -121,12 +121,12 @@ export default function AccessPage({ onEnter }) {
             <div className="size-5 sm:size-6 flex items-center justify-center">
               <img
                 src="/assets/hero.png"
-                alt="Claw Verse Logo"
+                alt="ClawVerse Logo"
                 className="w-full h-full object-contain rounded-full"
               />
             </div>
             <h2 className="text-white text-xs sm:text-sm font-bold tracking-[0.1em] font-mono">
-              // CLAW VERSE ACCESS TERMINAL
+              // CLAWVERSE ACCESS TERMINAL
             </h2>
           </div>
           <div className="flex items-center gap-4">
@@ -156,12 +156,12 @@ export default function AccessPage({ onEnter }) {
           <div className="flex flex-col items-center mb-8">
             <img 
               src="/assets/crab-brain.png" 
-              alt="Claw Verse AI" 
+              alt="ClawVerse AI" 
               className="w-48 h-48 object-cover rounded-2xl border-2 border-brand-red shadow-neon-red mb-6"
             />
             <div className="text-center">
               <h1 className="text-white text-4xl sm:text-6xl font-black leading-tight mb-2 tracking-tighter text-brand-red shadow-neon-red">
-                CLAW VERSE
+                CLAWVERSE
               </h1>
               <p className="text-brand-blue text-xs sm:text-sm font-bold tracking-widest uppercase font-mono">
                 <span className="material-symbols-outlined align-bottom text-sm mr-1">
@@ -204,7 +204,7 @@ export default function AccessPage({ onEnter }) {
               <span className="font-mono text-xs sm:text-sm">
                 CA:{" "}
                 <span className="text-white font-bold ml-1 tracking-wide group-hover:text-brand-blue transition-colors">
-                  CLAW...pump
+                  Coming soon
                 </span>
               </span>
             </div>
@@ -245,7 +245,7 @@ export default function AccessPage({ onEnter }) {
                 }}
                 className="disabled:opacity-50 disabled:pointer-events-none relative w-full sm:flex-1 group overflow-hidden rounded-lg bg-brand-red hover:bg-brand-red/80 transition-all h-14 flex items-center justify-center text-white font-black tracking-widest border border-white/10 shadow-neon-red text-sm sm:text-lg"
               >
-                {isConnected ? "[ ENTER CLAW VERSE ]" : "[ SYNC NEURAL LINK ]"}
+                {isConnected ? "[ ENTER CLAWVERSE ]" : "[ SYNC NEURAL LINK ]"}
               </button>
             </div>
             
