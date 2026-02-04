@@ -96,8 +96,8 @@ export default function GameInterface() {
         prev.map((m, i) =>
           i === prev.length - 1 && m.type === "user"
             ? { ...m, txSignature: signature, status: "pending" }
-            : m
-        )
+            : m,
+        ),
       );
 
       try {
@@ -112,8 +112,8 @@ export default function GameInterface() {
         // Mark user message as successful
         setMessages((prev) =>
           prev.map((m) =>
-            m.txSignature === signature ? { ...m, status: "success" } : m
-          )
+            m.txSignature === signature ? { ...m, status: "success" } : m,
+          ),
         );
 
         const aiMsg = {
@@ -149,8 +149,8 @@ export default function GameInterface() {
                   status: "failed",
                   error: "Backend processing failed. Click to retry.",
                 }
-              : m
-          )
+              : m,
+          ),
         );
       }
     } catch (error) {
@@ -184,8 +184,8 @@ export default function GameInterface() {
     // Mark as retrying
     setMessages((prev) =>
       prev.map((m) =>
-        m.txSignature === msg.txSignature ? { ...m, status: "retrying" } : m
-      )
+        m.txSignature === msg.txSignature ? { ...m, status: "retrying" } : m,
+      ),
     );
 
     try {
@@ -202,8 +202,8 @@ export default function GameInterface() {
         prev.map((m) =>
           m.txSignature === msg.txSignature
             ? { ...m, status: "success", error: null }
-            : m
-        )
+            : m,
+        ),
       );
 
       const aiMsg = {
@@ -234,8 +234,8 @@ export default function GameInterface() {
         prev.map((m) =>
           m.txSignature === msg.txSignature
             ? { ...m, status: "failed", error: "Retry failed. Try again." }
-            : m
-        )
+            : m,
+        ),
       );
     }
   };
@@ -366,7 +366,7 @@ export default function GameInterface() {
                       monetization_on
                     </span>
                     <p className="text-white text-[10px] sm:text-sm font-extrabold tracking-widest drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]">
-                      JACKPOT
+                      PRIZE
                     </p>
                   </div>
                   <p className="text-white tracking-tight text-lg sm:text-2xl lg:text-3xl font-bold glow-text mt-1 sm:mt-2">
@@ -440,8 +440,8 @@ export default function GameInterface() {
                             msg.isError
                               ? "border-red-500 text-red-200"
                               : msg.isWinner
-                              ? "border-green-500 text-green-200"
-                              : "border-primary text-gray-200"
+                                ? "border-green-500 text-green-200"
+                                : "border-primary text-gray-200"
                           } text-xs sm:text-sm leading-relaxed font-mono rounded-r-lg break-words`}
                         >
                           <div className="prose prose-invert prose-p:my-1 prose-headings:my-2 max-w-none text-xs sm:text-sm">
@@ -479,9 +479,9 @@ export default function GameInterface() {
                             msg.status === "failed"
                               ? "bg-red-500/10 border-red-500/50"
                               : msg.status === "pending" ||
-                                msg.status === "retrying"
-                              ? "bg-yellow-500/10 border-yellow-500/50"
-                              : "bg-[#2b2839] border-[#3f3b54]"
+                                  msg.status === "retrying"
+                                ? "bg-yellow-500/10 border-yellow-500/50"
+                                : "bg-[#2b2839] border-[#3f3b54]"
                           }`}
                         >
                           <span
@@ -489,17 +489,17 @@ export default function GameInterface() {
                               msg.status === "failed"
                                 ? "text-red-400"
                                 : msg.status === "pending" ||
-                                  msg.status === "retrying"
-                                ? "text-yellow-400 animate-pulse"
-                                : "text-gray-400"
+                                    msg.status === "retrying"
+                                  ? "text-yellow-400 animate-pulse"
+                                  : "text-gray-400"
                             }`}
                           >
                             {msg.status === "failed"
                               ? "error"
                               : msg.status === "pending" ||
-                                msg.status === "retrying"
-                              ? "sync"
-                              : "person"}
+                                  msg.status === "retrying"
+                                ? "sync"
+                                : "person"}
                           </span>
                         </div>
                       </div>
@@ -509,10 +509,10 @@ export default function GameInterface() {
                             {msg.status === "failed"
                               ? "TX_FAILED"
                               : msg.status === "pending"
-                              ? "PROCESSING"
-                              : msg.status === "retrying"
-                              ? "RETRYING"
-                              : "ID_VERIFIED"}
+                                ? "PROCESSING"
+                                : msg.status === "retrying"
+                                  ? "RETRYING"
+                                  : "ID_VERIFIED"}
                           </span>
                           <span className="text-white text-xs sm:text-sm font-bold tracking-wider">
                             YOU

@@ -98,7 +98,9 @@ export function useGameStats() {
       // Return backend stats directly
       return {
         status: backendStats.status || "active",
-        name: backendStats.name || "CLAWVERSE",
+        // TODO: change properly on backend
+        // name: backendStats.name || "CLAWVERSE",
+        name: "PERSUASION GAME",
         jackpot: backendStats.jackpot || 0,
         totalAttempts: backendStats.totalAttempts || 0,
         attemptPrice: 0.0,
