@@ -100,8 +100,9 @@ export function useGameStats() {
         status: backendStats.status || "active",
         // TODO: change properly on backend
         // name: backendStats.name || "CLAWVERSE",
+        // jackpot: backendStats.jackpot || 0,
         name: "PERSUASION GAME",
-        jackpot: backendStats.jackpot || 0,
+        jackpot: 100,
         totalAttempts: backendStats.totalAttempts || 0,
         attemptPrice: 0.0,
         pda: "OFF_CHAIN_PDA",
