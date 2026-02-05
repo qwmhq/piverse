@@ -157,7 +157,7 @@ export default function AccessPage({ onEnter }) {
             <img 
               src="/assets/crab.png" 
               alt="ClawVerse AI" 
-              className="w-48 h-48 object-cover rounded-2xl border-2 border-brand-red shadow-neon-red mb-6"
+              className="w-48 h-48 object-cover rounded-2xl mb-6"
             />
             <div className="text-center">
               <h1 className="text-white text-4xl sm:text-6xl font-black leading-tight mb-2 tracking-tighter text-brand-red shadow-neon-red">
