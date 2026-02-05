@@ -155,7 +155,7 @@ export default function AccessPage({ onEnter }) {
           {/* Hero Section */}
           <div className="flex flex-col items-center mb-8">
             <img 
-              src="/assets/crab-brain.png" 
+              src="/assets/crab.jpg" 
               alt="ClawVerse AI" 
               className="w-48 h-48 object-cover rounded-2xl border-2 border-brand-red shadow-neon-red mb-6"
             />
