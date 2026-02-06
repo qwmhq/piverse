@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 
 import HowToPlayModal from "../components/HowToPlayModal";
+import { ellipsizeAddress } from "../lib/utils";
 
 export default function AccessPage({ onEnter }) {
   const { isConnected, address } = useAccount();
@@ -10,6 +11,7 @@ export default function AccessPage({ onEnter }) {
   const [typedStatus, setTypedStatus] = useState("");
   const [showHowToPlay, setShowHowToPlay] = useState(false);
   const [showWalletSelector, setShowWalletSelector] = useState(false);
+  const contractAddress = "0xB3848cd64cbfb3313417b908f6a0341428726B07";
 
   // Simple typing effect for the status log
   useEffect(() => {
@@ -60,7 +62,7 @@ export default function AccessPage({ onEnter }) {
       {showWalletSelector && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
           <div className="bg-[#121118] border border-white/10 rounded-xl w-full max-w-sm overflow-hidden shadow-2xl relative">
-            <button 
+            <button
               onClick={() => setShowWalletSelector(false)}
               className="absolute top-3 right-3 text-white/40 hover:text-white"
             >
@@ -68,10 +70,12 @@ export default function AccessPage({ onEnter }) {
             </button>
             <div className="p-6">
               <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
-                <span className="material-symbols-outlined text-brand-red">account_balance_wallet</span>
+                <span className="material-symbols-outlined text-brand-red">
+                  account_balance_wallet
+                </span>
                 SELECT UPLINK
               </h3>
-              
+
               {error && (
                 <div className="mb-4 p-3 bg-red-500/10 border border-red-500/50 rounded text-red-200 text-xs font-mono break-words">
                   ERROR: {error.message}
@@ -100,7 +104,7 @@ export default function AccessPage({ onEnter }) {
                     )}
                   </button>
                 ))}
-            </div>
+              </div>
             </div>
             <div className="bg-brand-red/5 p-4 border-t border-white/5 text-[10px] text-center text-white/40 font-mono">
               SECURE CONNECTION REQUIRED FOR ACCESS
@@ -154,9 +158,9 @@ export default function AccessPage({ onEnter }) {
         <div className="flex flex-col p-4 sm:p-10 min-h-[400px] sm:min-h-[500px]">
           {/* Hero Section */}
           <div className="flex flex-col items-center mb-8">
-            <img 
-              src="/assets/crab.png" 
-              alt="ClawVerse AI" 
+            <img
+              src="/assets/crab.png"
+              alt="ClawVerse AI"
               className="w-48 h-48 object-cover rounded-2xl mb-6"
             />
             <div className="text-center">
@@ -193,9 +197,7 @@ export default function AccessPage({ onEnter }) {
             <div
               className="flex items-center gap-2 bg-brand-dark text-white/60 px-3 py-2 rounded border border-brand-blue/30 cursor-pointer hover:bg-brand-gray transition-colors group relative"
               onClick={() => {
-                navigator.clipboard.writeText(
-                  "CLAW_VERSE_CONTRACT_ADDRESS"
-                );
+                navigator.clipboard.writeText(contractAddress);
               }}
             >
               <span className="material-symbols-outlined text-sm text-brand-blue">
@@ -204,7 +206,7 @@ export default function AccessPage({ onEnter }) {
               <span className="font-mono text-xs sm:text-sm">
                 CA:{" "}
                 <span className="text-white font-bold ml-1 tracking-wide group-hover:text-brand-blue transition-colors">
-                  Coming soon
+                  {ellipsizeAddress(contractAddress)}
                 </span>
               </span>
             </div>
@@ -248,13 +250,15 @@ export default function AccessPage({ onEnter }) {
                 {isConnected ? "[ ENTER CLAWVERSE ]" : "[ SYNC NEURAL LINK ]"}
               </button>
             </div>
-            
+
             {isConnected && (
               <button
                 onClick={() => disconnect()}
                 className="text-red-500 hover:text-red-400 text-xs font-bold tracking-widest transition-colors flex items-center justify-center gap-2 mt-2"
               >
-                <span className="material-symbols-outlined text-sm">logout</span>
+                <span className="material-symbols-outlined text-sm">
+                  logout
+                </span>
                 DISCONNECT UPLINK
               </button>
             )}
